@@ -10,6 +10,9 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class AuthController extends BaseController
 {
@@ -17,14 +20,18 @@ class AuthController extends BaseController
         Twig                             $view,
         private readonly AuthService     $authService,
         private readonly LoggerInterface $logger,
-        private CsrfService $csrfService,
+        private readonly CsrfService     $csrfService,
     ) {
         parent::__construct($view);
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
     public function showRegister(Request $request, Response $response): Response
     {
-        // TODO: you also have a logger service that you can inject and use anywhere; file is var/app.log
         $this->logger->info('Register page requested');
 
         return $this->render($response, 'auth/register.twig', [
@@ -32,28 +39,13 @@ class AuthController extends BaseController
         ]);
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws LoaderError
+     * @throws SyntaxError
+     */
     public function register(Request $request, Response $response): Response
     {
-        // TODO: call corresponding service to perform user registration
-
-        /*return $response->withHeader('Location', '/login')->withStatus(302);*/
-
-        /*$data = $request->getParsedBody();
-        $username = $data['username'] ?? '';
-        $password = $data['password'] ?? '';
-
-        try {
-            $this->authService->register($username, $password);
-            $this->logger->info('User registered successfully', ['username' => $username]);
-            return $response->withHeader('Location', '/login')->withStatus(302);
-        } catch (\InvalidArgumentException $e) {
-            $this->logger->warning('Registration failed', ['username' => $username, 'error' => $e->getMessage()]);
-            return $this->render($response, 'auth/register.twig', [
-                'errors' => ['general' => $e->getMessage()],
-                'username' => $username,
-            ]);
-        }*/
-
         $data = $request->getParsedBody();
         $csrfToken = $data['csrf_token'] ?? '';
 
@@ -110,6 +102,11 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
     public function showLogin(Request $request, Response $response): Response
     {
         return $this->render($response, 'auth/login.twig', [
@@ -117,27 +114,13 @@ class AuthController extends BaseController
         ]);
     }
 
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
     public function login(Request $request, Response $response): Response
     {
-        // TODO: call corresponding service to perform user login, handle login failures
-
-        /*return $response->withHeader('Location', '/')->withStatus(302);*/
-
-        /*$data = $request->getParsedBody();
-        $username = $data['username'] ?? '';
-        $password = $data['password'] ?? '';
-
-        if ($this->authService->attempt($username, $password)) {
-            $this->logger->info('User logged in successfully', ['username' => $username]);
-            return $response->withHeader('Location', '/')->withStatus(302);
-        } else {
-            $this->logger->warning('Login failed', ['username' => $username]);
-            return $this->render($response, 'auth/login.twig', [
-                'errors' => ['general' => 'Invalid username or password'],
-                'username' => $username,
-            ]);
-        }*/
-
         $data = $request->getParsedBody();
         $csrfToken = $data['csrf_token'] ?? '';
 
@@ -170,10 +153,6 @@ class AuthController extends BaseController
 
     public function logout(Request $request, Response $response): Response
     {
-        // TODO: handle logout by clearing session data and destroying session
-
-        /*return $response->withHeader('Location', '/login')->withStatus(302);*/
-
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }

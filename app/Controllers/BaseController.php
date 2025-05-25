@@ -6,6 +6,9 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Views\Twig;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 abstract class BaseController
 {
@@ -13,10 +16,13 @@ abstract class BaseController
         protected Twig $view,
     ) {}
 
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
     protected function render(Response $response, string $template, array $data = []): Response
     {
         return $this->view->render($response, $template, $data);
     }
-
-    // TODO: add here any common controller logic and use in concrete controllers
 }

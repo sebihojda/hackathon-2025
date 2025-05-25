@@ -15,9 +15,6 @@ class MonthlySummaryService
 
     public function computeTotalExpenditure(User $user, int $year, int $month): float
     {
-        // TODO: compute expenses total for year-month for a given user
-        /*return 0;*/
-
         $criteria = [
             'user_id' => $user->id,
             'year' => $year,
@@ -29,9 +26,6 @@ class MonthlySummaryService
 
     public function computePerCategoryTotals(User $user, int $year, int $month): array
     {
-        // TODO: compute totals for year-month for a given user
-        /*return [];*/
-
         $criteria = [
             'user_id' => $user->id,
             'year' => $year,
@@ -60,9 +54,6 @@ class MonthlySummaryService
 
     public function computePerCategoryAverages(User $user, int $year, int $month): array
     {
-        // TODO: compute averages for year-month for a given user
-        /*return [];*/
-
         $criteria = [
             'user_id' => $user->id,
             'year' => $year,

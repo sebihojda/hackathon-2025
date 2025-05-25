@@ -1,17 +1,6 @@
 {% extends 'layout.twig' %}
 {% block title %}Expenses{% endblock %}
 {% block content %}
-
-    {# TODO: remove mock data below, pass real expenses from the controller action #}
-    {#{% set expenses = [
-        {'id': 1, 'description': 'Groceries', 'amount': 150.50, 'category': 'Food', 'date': '2025-05-31'},
-        {'id': 2, 'description': 'Internet Bill', 'amount': 79.99, 'category': 'Utilities', 'date': '2025-05-25'},
-        {'id': 3, 'description': 'Movie Tickets', 'amount': 30.00, 'category': 'Entertainment', 'date': '2025-05-18'},
-        {'id': 4, 'description': 'Gas', 'amount': 45.75, 'category': 'Transportation', 'date': '2025-05-10'},
-        {'id': 5, 'description': 'Gym Membership', 'amount': 50.00, 'category': 'Health', 'date': '2025-05-05'}
-    ] %}
-    {% set total = 5 %}#}
-
     <h1 class="text-2xl font-bold mb-4">Expenses</h1>
 
     {% if flashMessage %}
@@ -20,7 +9,6 @@
         </div>
     {% endif %}
 
-    {# TODO: Configure the necessary href attribute #}
     <a href="/expenses/create"
        class="inline-block mb-6 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
         Add Expense
@@ -28,40 +16,20 @@
 
     <section class="mb-8">
         <h2 class="text-xl font-bold mb-4">List monthly expenses</h2>
-        {# Listing filters #}
         <form action="/expenses" method="GET" class="mb-6 flex gap-4">
             <div>
                 <label for="year" class="block text-gray-300 text-sm font-bold mb-2">Year</label>
-                {# TODO: remove mock data below, pass actual years with expenses from the controller #}
                 <select name="year" id="year"
                         class="shadow border rounded py-2 px-3 text-gray-400 leading-tight focus:outline-none focus:shadow-outline">
-                    {#<option value="2025" selected>2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>#}
-
                     {% for availableYear in availableYears %}
                         <option value="{{ availableYear }}" {% if availableYear == year %}selected{% endif %}>{{ availableYear }}</option>
                     {% endfor %}
-
                 </select>
             </div>
             <div>
                 <label for="month" class="block text-gray-300 text-sm font-bold mb-2">Month</label>
                 <select name="month" id="month"
                         class="shadow border rounded py-2 px-3 text-gray-400 leading-tight focus:outline-none focus:shadow-outline">
-                    {#<option value="1">January</option>
-                    <option value="2">February</option>
-                    <option value="3">March</option>
-                    <option value="4">April</option>
-                    <option value="5" selected>May</option>
-                    <option value="6">June</option>
-                    <option value="7">July</option>
-                    <option value="8">August</option>
-                    <option value="9">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>#}
-
                     <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
                     <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
                     <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
@@ -74,7 +42,6 @@
                     <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
                     <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
                     <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
-
                 </select>
             </div>
             <div class="self-end">
@@ -85,7 +52,6 @@
             </div>
         </form>
 
-        {# Listing #}
         <table class="w-full">
             <thead>
             <tr class="bg-gray-800 text-left">
@@ -104,10 +70,8 @@
                     <td class="py-2 px-4">{{ expense.date|date('m/d/Y') }}</td>
                     <td class="py-2 px-4">{{ expense.category }}</td>
                     <td class="py-2 px-4">
-                        {# TODO: Configure the necessary href attribute #}
                         <a href="/expenses/{{ expense.id }}/edit"
                            class="text-blue-500 hover:text-blue-400 mr-2">Edit</a>
-                        {# TODO: Configure the necessary form action #}
                         <form action="/expenses/{{ expense.id }}/delete" method="POST" class="inline">
                             <button type="submit"
                                     class="text-red-500 hover:text-red-400"
@@ -125,13 +89,10 @@
         <div class="mt-1 flex justify-between">
             {#{% if total and page > 1 %}#}
             {% if hasPrevious %}
-                {# TODO: fill in HREF #}
                 <a href="/expenses?year={{ year }}&month={{ month }}&page={{ page - 1 }}" class="text-blue-500 hover:text-blue-400">Previous</a>
             {% else %}
                 <span></span>
             {% endif %}
-
-            {# TODO: hide link when there is no next page available, fill in HREF #}
             {% if hasNext %}
                 <a href="/expenses?year={{ year }}&month={{ month }}&page={{ page + 1 }}" class="text-blue-500 hover:text-blue-400">Next</a>
             {% else %}
@@ -144,15 +105,6 @@
 
     <section class="mb-8">
         <h2 class="text-xl font-bold mb-4">Import expenses from CSV</h2>
-        {#<form action="expenses/import" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
-            <label for="csvFile" class="text-gray-300 text-sm font-bold">CSV File</label>
-            <input type="file" id="csv" name="csv" accept=".csv" required
-                   class="shadow appearance-none border rounded py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline">
-            <button type="submit"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Import
-            </button>
-        </form>#}
         <form action="/expenses/import" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
             <label for="csv" class="block text-gray-700 text-sm font-bold">Import CSV:</label>
             <input type="file" name="csv" id="csv" class="shadow border rounded py-2 px-3 text-gray-400 leading-tight focus:outline-none focus:shadow-outline">

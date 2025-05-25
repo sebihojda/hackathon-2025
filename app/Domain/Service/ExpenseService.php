@@ -15,20 +15,6 @@ use Exception;
 
 class ExpenseService
 {
-    /*private const VALID_CATEGORIES = [
-        'groceries',
-        'utilities',
-        'transport',
-        'entertainment',
-        'housing',
-        'healthcare',
-        'shopping',
-        'dining',
-        'education',
-        'travel',
-        'other',
-    ];*/
-
     private array $categories;
 
     public function __construct(
@@ -40,9 +26,6 @@ class ExpenseService
 
     public function list(/*User $user,*/int $userId, int $year, int $month, int $pageNumber, int $pageSize): array
     {
-        // TODO: implement this and call from controller to obtain paginated list of expenses
-        /*return [];*/
-
         $criteria = [
             'user_id' => $userId,
             'year' => $year,
@@ -69,11 +52,6 @@ class ExpenseService
         DateTimeImmutable $date,
         string $category,
     ): void {
-        // TODO: implement this to create a new expense entity, perform validation, and persist
-
-        // TODO: here is a code sample to start with
-        /*$expense = new Expense(null, $user->id, $date, $category, (int)$amount, $description);
-        $this->expenses->save($expense);*/
 
         $this->validateExpenseData($amount, $description, $date, $category);
 
@@ -89,7 +67,6 @@ class ExpenseService
         DateTimeImmutable $date,
         string $category,
     ): void {
-        // TODO: implement this to update expense entity, perform validation, and persist
 
         $this->validateExpenseData($amount, $description, $date, $category);
 
@@ -152,11 +129,6 @@ class ExpenseService
 
     public function importFromCsv(User $user, UploadedFileInterface $csvFile): int
     {
-        // TODO: process rows in file stream, create and persist entities
-        // TODO: for extra points wrap the whole import in a transaction and rollback only in case writing to DB fails
-
-       /* return 0; // number of imported rows*/
-
         if ($csvFile->getError() !== UPLOAD_ERR_OK) {
             throw new InvalidArgumentException('File upload error');
         }

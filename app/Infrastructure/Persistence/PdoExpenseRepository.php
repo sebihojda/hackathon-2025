@@ -35,8 +35,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function save(Expense $expense): void
     {
-        // TODO: Implement save() method.
-
         if ($expense->id === null) {
             // Insert new expense
             $query = 'INSERT INTO expenses (user_id, date, category, amount_cents, description) VALUES (?, ?, ?, ?, ?)';
@@ -91,9 +89,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
      */
     public function findBy(array $criteria, int $from, int $limit): array
     {
-        // TODO: Implement findBy() method.
-        /*return [];*/
-
         $conditions = [];
         $params = [];
 
@@ -129,9 +124,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function countBy(array $criteria): int
     {
-        // TODO: Implement countBy() method.
-        /*return 0;*/
-
         $conditions = [];
         $params = [];
 
@@ -159,9 +151,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function listExpenditureYears(int $userId): array
     {
-        // TODO: Implement listExpenditureYears() method.
-        /*return [];*/
-
         $query = 'SELECT DISTINCT strftime("%Y", date) as year FROM expenses WHERE user_id = ? ORDER BY year DESC';
         $statement = $this->pdo->prepare($query);
         $statement->execute([$userId]);
@@ -182,9 +171,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function sumAmountsByCategory(array $criteria): array
     {
-        // TODO: Implement sumAmountsByCategory() method.
-        /*return [];*/
-
         $conditions = [];
         $params = [];
 
@@ -217,9 +203,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function averageAmountsByCategory(array $criteria): array
     {
-        // TODO: Implement averageAmountsByCategory() method.
-        /*return [];*/
-
         $conditions = [];
         $params = [];
 
@@ -252,9 +235,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function sumAmounts(array $criteria): float
     {
-        // TODO: Implement sumAmounts() method.
-        /*return 0;*/
-
         $conditions = [];
         $params = [];
 
