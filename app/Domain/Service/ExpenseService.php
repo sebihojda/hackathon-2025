@@ -13,19 +13,27 @@ use Psr\Http\Message\UploadedFileInterface;
 
 class ExpenseService
 {
-    private const VALID_CATEGORIES = [
+    /*private const VALID_CATEGORIES = [
         'groceries',
         'utilities',
         'transport',
         'entertainment',
         'housing',
-        'health',
-        'other'
-    ];
+        'healthcare',
+        'shopping',
+        'dining',
+        'education',
+        'travel',
+        'other',
+    ];*/
+
+    private array $categories;
 
     public function __construct(
         private readonly ExpenseRepositoryInterface $expenses,
-    ) {}
+    ) {
+        $this->categories = array_keys(json_decode($_ENV['CATEGORIES_BUDGETS'], true));
+    }
 
     public function list(/*User $user,*/int $userId, int $year, int $month, int $pageNumber, int $pageSize): array
     {
@@ -107,7 +115,7 @@ class ExpenseService
 
     public function getValidCategories(): array
     {
-        return self::VALID_CATEGORIES;
+        return $this->categories;
     }
 
     private function validateExpenseData(
@@ -130,7 +138,7 @@ class ExpenseService
             $errors[] = 'Date cannot be in the future';
         }
 
-        if (!in_array($category, self::VALID_CATEGORIES)) {
+        if (!in_array($category, $this->categories)) {
             $errors[] = 'Invalid category selected';
         }
 
