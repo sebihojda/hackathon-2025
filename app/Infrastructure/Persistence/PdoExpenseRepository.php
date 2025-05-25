@@ -71,6 +71,21 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $statement->execute([$id]);
     }
 
+    public function beginTransaction(): void
+    {
+        $this->pdo->beginTransaction();
+    }
+
+    public function commit(): void
+    {
+        $this->pdo->commit();
+    }
+
+    public function rollback(): void
+    {
+        $this->pdo->rollBack();
+    }
+
     /**
      * @throws Exception
      */
@@ -111,7 +126,6 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
         return $expenses;
     }
-
 
     public function countBy(array $criteria): int
     {

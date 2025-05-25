@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Domain\Repository\UserRepositoryInterface;
 use App\Domain\Service\ExpenseService;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -18,6 +19,7 @@ class ExpenseController extends BaseController
     public function __construct(
         Twig $view,
         private readonly ExpenseService $expenseService,
+        private readonly UserRepositoryInterface $userRepository,
     ) {
         parent::__construct($view);
     }
@@ -60,6 +62,10 @@ class ExpenseController extends BaseController
 
         $years = $this->expenseService->getYears($userId);
 
+        // Get flash message if any
+        $flashMessage = $_SESSION['flash_message'] ?? null;
+        unset($_SESSION['flash_message']);
+
         return $this->render($response, 'expenses/index.twig', [
             'expenses' => $result['expenses'],
             'total' => $result['total'],
@@ -69,7 +75,8 @@ class ExpenseController extends BaseController
             'month' => $month,
             'hasNext' => $result['hasNext'],
             'hasPrevious' => $result['hasPrevious'],
-            'availableYears' => $years ? $years : [2025]
+            'availableYears' => $years ? $years : [2025],
+            'flashMessage' => $flashMessage
         ]);
     }
 
@@ -81,6 +88,10 @@ class ExpenseController extends BaseController
         // - obtain the list of available categories from configuration and pass to the view
 
         /*return $this->render($response, 'expenses/create.twig', ['categories' => []]);*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
         $categories = $this->expenseService->getValidCategories();
 
@@ -239,6 +250,52 @@ class ExpenseController extends BaseController
         }
 
         $this->expenseService->delete($expenseId);
+
+        $_SESSION['flash_message'] = [
+            'type' => 'success',
+            'message' => 'Expense deleted successfully!'
+        ];
+
+        return $response->withHeader('Location', '/expenses')->withStatus(302);
+    }
+
+    public function import(Request $request, Response $response): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $user = $this->userRepository->find($userId);
+
+        if (!$user) {
+            return $response->withStatus(403);
+        }
+
+        $uploadedFiles = $request->getUploadedFiles();
+        $csvFile = $uploadedFiles['csv'] ?? null;
+
+        if (!$csvFile || $csvFile->getError() !== UPLOAD_ERR_OK) {
+            $_SESSION['flash_message'] = [
+                'type' => 'error',
+                'message' => 'Please select a valid CSV file to upload.'
+            ];
+            return $response->withHeader('Location', '/expenses')->withStatus(302);
+        }
+
+        try {
+            $importedCount = $this->expenseService->importFromCsv($user, $csvFile);
+
+            $_SESSION['flash_message'] = [
+                'type' => 'success',
+                'message' => "Successfully imported {$importedCount} expenses from CSV file!"
+            ];
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['flash_message'] = [
+                'type' => 'error',
+                'message' => 'CSV import failed: ' . $e->getMessage()
+            ];
+        }
 
         return $response->withHeader('Location', '/expenses')->withStatus(302);
     }

@@ -14,6 +14,12 @@
 
     <h1 class="text-2xl font-bold mb-4">Expenses</h1>
 
+    {% if flashMessage %}
+        <div class="mb-4 p-4 rounded {% if flashMessage.type == 'success' %}bg-green-100 border border-green-400 text-green-700{% else %}bg-red-100 border border-red-400 text-red-700{% endif %}">
+            {{ flashMessage.message }}
+        </div>
+    {% endif %}
+
     {# TODO: Configure the necessary href attribute #}
     <a href="/expenses/create"
        class="inline-block mb-6 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -138,12 +144,19 @@
 
     <section class="mb-8">
         <h2 class="text-xl font-bold mb-4">Import expenses from CSV</h2>
-        <form action="expenses/import" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
+        {#<form action="expenses/import" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
             <label for="csvFile" class="text-gray-300 text-sm font-bold">CSV File</label>
             <input type="file" id="csv" name="csv" accept=".csv" required
                    class="shadow appearance-none border rounded py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline">
             <button type="submit"
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Import
+            </button>
+        </form>#}
+        <form action="/expenses/import" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
+            <label for="csv" class="block text-gray-700 text-sm font-bold">Import CSV:</label>
+            <input type="file" name="csv" id="csv" class="shadow border rounded py-2 px-3 text-gray-400 leading-tight focus:outline-none focus:shadow-outline">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                 Import
             </button>
         </form>
