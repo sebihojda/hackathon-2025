@@ -10,6 +10,8 @@
     {% endif %}
 
     <form action="/login" method="POST" class="max-w-sm mx-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrfToken }}">
+
         <div class="mb-4">
             <label for="username" class="block text-gray-400 text-sm font-bold mb-2">Username</label>
             <input type="text" id="username" name="username" required value="{{ username|default('') }}"
