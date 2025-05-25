@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Domain\Service\ExpenseService;
+use DateTimeImmutable;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -30,7 +32,7 @@ class ExpenseController extends BaseController
         // - use the expense service to fetch expenses for the current user
 
         // parse request parameters
-        $userId = 1; // TODO: obtain logged-in user ID from session
+        /*$userId = 1; // TODO: obtain logged-in user ID from session
         $page = (int)($request->getQueryParams()['page'] ?? 1);
         $pageSize = (int)($request->getQueryParams()['pageSize'] ?? self::PAGE_SIZE);
 
@@ -40,6 +42,34 @@ class ExpenseController extends BaseController
             'expenses' => $expenses,
             'page'     => $page,
             'pageSize' => $pageSize,
+        ]);*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $queryParams = $request->getQueryParams();
+
+        $year = (int)($queryParams['year'] ?? date('Y'));
+        $month = (int)($queryParams['month'] ?? date('n'));
+        $page = (int)($queryParams['page'] ?? 1);
+        $pageSize = (int)($queryParams['pageSize'] ?? self::PAGE_SIZE);
+
+        $result = $this->expenseService->list($userId, $year, $month, $page, $pageSize);
+
+        $years = $this->expenseService->getYears($userId);
+
+        return $this->render($response, 'expenses/index.twig', [
+            'expenses' => $result['expenses'],
+            'total' => $result['total'],
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'year' => $year,
+            'month' => $month,
+            'hasNext' => $result['hasNext'],
+            'hasPrevious' => $result['hasPrevious'],
+            'availableYears' => $years ? $years : [2025]
         ]);
     }
 
@@ -50,7 +80,15 @@ class ExpenseController extends BaseController
         // Hints:
         // - obtain the list of available categories from configuration and pass to the view
 
-        return $this->render($response, 'expenses/create.twig', ['categories' => []]);
+        /*return $this->render($response, 'expenses/create.twig', ['categories' => []]);*/
+
+        $categories = $this->expenseService->getValidCategories();
+
+        return $this->render($response, 'expenses/create.twig', [
+            'categories' => $categories,
+            'errors' => $_SESSION['errors'] ?? [],
+            'old' => $_SESSION['old'] ?? [],
+        ]);
     }
 
     public function store(Request $request, Response $response): Response
@@ -63,7 +101,33 @@ class ExpenseController extends BaseController
         // - rerender the "expenses.create" page with included errors in case of failure
         // - redirect to the "expenses.index" page in case of success
 
-        return $response;
+        /*return $response;*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $data = $request->getParsedBody();
+
+        try {
+            $amount = (float) $data['amount'];
+            $description = trim($data['description']);
+            $date = new DateTimeImmutable($data['date']);
+            $category = $data['category'];
+
+            $this->expenseService->create($userId, $amount, $description, $date, $category);
+
+            // Clear any previous form data
+            unset($_SESSION['errors'], $_SESSION['old']);
+
+            return $response->withHeader('Location', '/expenses')->withStatus(302);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['errors'] = [$e->getMessage()];
+            $_SESSION['old'] = $data;
+
+            return $response->withHeader('Location', '/expenses/create')->withStatus(302);
+        }
     }
 
     public function edit(Request $request, Response $response, array $routeParams): Response
@@ -75,9 +139,31 @@ class ExpenseController extends BaseController
         // - load the expense to be edited by its ID (use route params to get it)
         // - check that the logged-in user is the owner of the edited expense, and fail with 403 if not
 
-        $expense = ['id' => 1];
+        /*$expense = ['id' => 1];
 
-        return $this->render($response, 'expenses/edit.twig', ['expense' => $expense, 'categories' => []]);
+        return $this->render($response, 'expenses/edit.twig', ['expense' => $expense, 'categories' => []]);*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $expenseId = (int) $routeParams['id'];
+
+        $expense = $this->expenseService->findById($expenseId);
+
+        if (!$expense || $expense->userId !== $userId) {
+            return $response->withStatus(403);
+        }
+
+        $categories = $this->expenseService->getValidCategories();
+
+        return $this->render($response, 'expenses/edit.twig', [
+            'expense' => $expense,
+            'categories' => $categories,
+            'errors' => $_SESSION['errors'] ?? [],
+            'old' => $_SESSION['old'] ?? [],
+        ]);
     }
 
     public function update(Request $request, Response $response, array $routeParams): Response
@@ -92,7 +178,40 @@ class ExpenseController extends BaseController
         // - rerender the "expenses.edit" page with included errors in case of failure
         // - redirect to the "expenses.index" page in case of success
 
-        return $response;
+        /*return $response;*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $expenseId = (int) $routeParams['id'];
+        $data = $request->getParsedBody();
+
+        $expense = $this->expenseService->findById($expenseId);
+
+        if (!$expense || $expense->userId !== $userId) {
+            return $response->withStatus(403);
+        }
+
+        try {
+            $amount = (float) $data['amount'];
+            $description = trim($data['description']);
+            $date = new DateTimeImmutable($data['date']);
+            $category = $data['category'];
+
+            $this->expenseService->update($expense, $amount, $description, $date, $category);
+
+            // Clear any previous form data
+            unset($_SESSION['errors'], $_SESSION['old']);
+
+            return $response->withHeader('Location', '/expenses')->withStatus(302);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['errors'] = [$e->getMessage()];
+            $_SESSION['old'] = $data;
+
+            return $response->withHeader('Location', "/expenses/{$expenseId}/edit")->withStatus(302);
+        }
     }
 
     public function destroy(Request $request, Response $response, array $routeParams): Response
@@ -104,6 +223,23 @@ class ExpenseController extends BaseController
         // - call the repository method to delete the expense
         // - redirect to the "expenses.index" page
 
-        return $response;
+        /*return $response;*/
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'];
+        $expenseId = (int) $routeParams['id'];
+
+        $expense = $this->expenseService->findById($expenseId);
+
+        if (!$expense || $expense->userId !== $userId) {
+            return $response->withStatus(403);
+        }
+
+        $this->expenseService->delete($expenseId);
+
+        return $response->withHeader('Location', '/expenses')->withStatus(302);
     }
 }
